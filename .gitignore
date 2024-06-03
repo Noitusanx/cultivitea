@@ -1,0 +1,8 @@
+# Folder node_modules/
+node_modules/
+
+# File .env
+.env
+
+# File log
+*.log
