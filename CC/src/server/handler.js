@@ -70,15 +70,16 @@ async function getPredictHistories(req, res, next) {
 const discussions = [];
 
 async function createDiscussion(req, res, next) {
-  const { title, content, creator } = req.body;
+  const { title, content} = req.body;
 
   const id = crypto.randomUUID();
+
+  const createdAt = new Date().toISOString();
+  const creator = req.user.username
 
   if (!title || !content || !creator) {
     return res.status(400).json({ status: 'fail', message: 'Field title, content, createdAt, and creator are required' });
   }
-
-  const createdAt = new Date().toISOString();
 
   const newDiscussion = {
     id,
@@ -90,7 +91,6 @@ async function createDiscussion(req, res, next) {
   };
   discussions.push(newDiscussion);
 
-  console.log(newDiscussion);
 
   res.status(201).json({ status: 'success', message: 'Discussion created', data: newDiscussion});
 };
@@ -118,7 +118,7 @@ async function getDiscussion(req, res, next) {
 // Comment handler
 async function createComment(req, res, next) {
   const { id } = req.params;
-  const { content, creator } = req.body;
+  const { content} = req.body;
   const createdAt = new Date().toISOString();
 
   const discussion = discussions.find(discussion => discussion.id === id);
@@ -127,9 +127,12 @@ async function createComment(req, res, next) {
     return res.status(404).json({ status: 'fail', message: 'Discussion not found' });
   }
 
+  const creator = req.user.username;
+
   if (!content || !creator) {
     return res.status(400).json({ status: 'fail', message: 'Field content and creator are required' });
   }
+
 
   const newComment = {
     content,

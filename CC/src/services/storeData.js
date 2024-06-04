@@ -1,5 +1,4 @@
 // store data in firestore
-
 const Firestore = require('@google-cloud/firestore');
 const db = new Firestore();
 const predictionsCollection = db.collection('predictions');
@@ -28,7 +27,6 @@ const saveUserData = async (userData) => {
     throw new Error('Error saving user data: ' + error.message);
   }
 };
-
 
 
 module.exports = {predictionsCollection, storeData, saveUserData, usersCollection};
