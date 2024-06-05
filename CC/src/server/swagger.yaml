@@ -7,51 +7,6 @@ servers:
   - description: Localhost server for Cultivitea
     url: http://localhost:8085
 paths:
-  # /predict:
-  #   post:
-  #     summary: Predict image
-  #     operationId: postPredict
-  #     requestBody:
-  #       required: true
-  #       content:
-  #         multipart/form-data:
-  #           schema:
-  #             type: object
-  #             properties:
-  #               image:
-  #                 type: string
-  #                 format: binary
-  #     responses:
-  #       '200':
-  #         description: Prediction result
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: object
-  #               properties:
-  #                 result:
-  #                   type: string
-  #   get:
-  #     summary: Get prediction histories
-  #     operationId: getPredictHistories
-  #     responses:
-  #       '200':
-  #         description: A list of prediction histories
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: array
-  #               items:
-  #                 type: object
-  #                 properties:
-  #                   imageUrl:
-  #                     type: string
-  #                   result:
-  #                     type: string
-  #                   timestamp:
-  #                     type: string
-  #                     format: date-time
-
   /discussions:
     post:
       summary: Create a discussion
@@ -89,13 +44,13 @@ paths:
                 items:
                   $ref: '#/components/schemas/Discussion'
 
-  /discussions/{id}:
+  /discussions/{discussionId}:
     get:
       summary: Get a discussion by ID
       operationId: getDiscussion
       parameters:
         - in: path
-          name: id
+          name: discussionId
           required: true
           schema:
             type: string
@@ -109,8 +64,65 @@ paths:
                 $ref: '#/components/schemas/Discussion'
         '404':
           description: Discussion not found
+    
+    delete:
+      summary: Delete a discussion by ID
+      operationId: deleteDiscussion
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: discussionId
+          required: true
+          schema:
+            type: string
+          description: The discussion ID
+      responses:
+        '200':
+          description: Discussion deleted successfully
+        '404':
+          description: Discussion not found
+        '403':
+          description: Unauthorized to delete discussion
+  
 
-  /discussions/{id}/comments:
+  /discussions/edit/{discussionId}:
+    put:
+      summary: Edit a discussion by ID
+      operationId: editDiscussion
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: discussionId
+          required: true
+          schema:
+            type: string
+          description: The discussion ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+      responses:
+        '200':
+          description: Discussion edited successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Discussion'
+        '404':
+          description: Discussion not found
+        '403':
+          description: Unauthorized to edit discussion
+
+  /discussions/{discussionId}/comments:
     post:
       summary: Create a comment on a discussion
       operationId: createComment
@@ -118,7 +130,7 @@ paths:
         - bearerAuth: []
       parameters:
         - in: path
-          name: id
+          name: discussionId
           required: true
           schema:
             type: string
@@ -140,7 +152,7 @@ paths:
       operationId: getComments
       parameters:
         - in: path
-          name: id
+          name: discussionId
           required: true
           schema:
             type: string
@@ -155,6 +167,8 @@ paths:
                 items:
                   type: object
                   properties:
+                    commentId:
+                      type: string
                     content:
                       type: string
                     createdAt:
@@ -162,6 +176,33 @@ paths:
                       format: date-time
                     creator:
                       type: string
+
+  /discussions/{discussionId}/comments/{commentId}:
+    delete:
+      summary: Delete a comment from a discussion
+      operationId: deleteComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: discussionId
+          required: true
+          schema:
+            type: string
+          description: The discussion ID
+        - in: path
+          name: commentId
+          required: true
+          schema:
+            type: string
+          description: The comment ID
+      responses:
+        '200':
+          description: Comment deleted successfully
+        '404':
+          description: Comment not found
+        '403':
+          description: Unauthorized to delete comment
 
   /signup:
     post:
@@ -233,7 +274,11 @@ components:
     Discussion:
       type: object
       properties:
-        id:
+        discussionId:
+          type: string
+        creatorUid:
+          type: string
+        creator:
           type: string
         title:
           type: string
@@ -242,8 +287,10 @@ components:
         createdAt:
           type: string
           format: date-time
-        creator:
-          type: string
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
 
     User:
       type: object
@@ -266,16 +313,28 @@ components:
         phoneNumber:
           type: string
           description: The phone number of the user
-
         dateOfBirth:
           type: string
           format: date
           description: The date of birth of the user.
+
+    Comment:
+      type: object
+      properties:
+        commentId:
+          type: string
+        creatorUid:
+          type: string
+        creator:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
 
 securitySchemes:
   bearerAuth:
     type: http
     scheme: bearer
     bearerFormat: JWT
-
-
