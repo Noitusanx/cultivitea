@@ -1,0 +1,281 @@
+openapi: 3.0.0
+info:
+  version: "1.0.0"
+  title: Cultivitea API
+  description: The API for the Cultivitea project
+servers:
+  - description: Localhost server for Cultivitea
+    url: http://localhost:8085
+paths:
+  # /predict:
+  #   post:
+  #     summary: Predict image
+  #     operationId: postPredict
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         multipart/form-data:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               image:
+  #                 type: string
+  #                 format: binary
+  #     responses:
+  #       '200':
+  #         description: Prediction result
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 result:
+  #                   type: string
+  #   get:
+  #     summary: Get prediction histories
+  #     operationId: getPredictHistories
+  #     responses:
+  #       '200':
+  #         description: A list of prediction histories
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: array
+  #               items:
+  #                 type: object
+  #                 properties:
+  #                   imageUrl:
+  #                     type: string
+  #                   result:
+  #                     type: string
+  #                   timestamp:
+  #                     type: string
+  #                     format: date-time
+
+  /discussions:
+    post:
+      summary: Create a discussion
+      operationId: createDiscussion
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+      responses:
+        '201':
+          description: Discussion created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Discussion'
+    get:
+      summary: Get all discussions
+      operationId: getAllDiscussions
+      responses:
+        '200':
+          description: A list of discussions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Discussion'
+
+  /discussions/{id}:
+    get:
+      summary: Get a discussion by ID
+      operationId: getDiscussion
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The discussion ID
+      responses:
+        '200':
+          description: A discussion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Discussion'
+        '404':
+          description: Discussion not found
+
+  /discussions/{id}/comments:
+    post:
+      summary: Create a comment on a discussion
+      operationId: createComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The discussion ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+      responses:
+        '201':
+          description: Comment created
+    get:
+      summary: Get comments of a discussion
+      operationId: getComments
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The discussion ID
+      responses:
+        '200':
+          description: A list of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    content:
+                      type: string
+                    createdAt:
+                      type: string
+                      format: date-time
+                    creator:
+                      type: string
+
+  /signup:
+    post:
+      summary: User sign up
+      operationId: signUp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: User signed up
+
+  /signin:
+    post:
+      summary: User sign in
+      operationId: signIn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: User signed in
+
+  /logout:
+    post:
+      summary: User logout
+      operationId: logOut
+      responses:
+        '200':
+          description: User logged out
+
+  /reset-password:
+    post:
+      summary: Reset password
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        '200':
+          description: Password reset email sent
+
+components:
+  schemas:
+    Discussion:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        creator:
+          type: string
+
+    User:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          description: The username of the user
+        email:
+          type: string
+          format: email
+          description: The email address of the user
+        password:
+          type: string
+          format: password
+          description: The password of the user
+        phoneNumber:
+          type: string
+          description: The phone number of the user
+
+        dateOfBirth:
+          type: string
+          format: date
+          description: The date of birth of the user.
+
+securitySchemes:
+  bearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT
+
+

@@ -12,6 +12,8 @@ const {
  } = require('../config/firebase');
 const auth = getAuth();
 
+
+
 // Predict handler
 async function postPredict(req, res, next) {
   try {
@@ -158,45 +160,6 @@ async function getComments(req, res, next) {
 }
 
 
-
-// Education handler
-const educations = [];
-
-async function createEducation(req, res, next) {
-  const { title, content} = req.body;
-
-  const { file: video } = req;
-
-  const id = crypto.randomUUID();
-
-  if (!title || !content || !video) {
-    return res.status(400).json({ status: 'fail', message: 'Field title, content, and video are required' });
-  }
-
-  const createdAt = new Date().toISOString();
-
-  const newEducation = {
-    id,
-    title,
-    content,
-    video,
-    createdAt,
-  };
-  educations.push(newEducation);
-
-  console.log(newEducation);
-
-  res.status(201).json({ status: 'success', message: 'Education created', data: newEducation});
-
-}
-
-
-async function getEducations(req, res, next) {
-  res.status(200).json({status: 'success', message: "Get all educations", data: educations})
-}
-
-
-
 // Auth handler
 async function signUp(req, res) {
 const { username, email, password } = req.body;
@@ -282,5 +245,5 @@ async function resetPassword(req, res){
     });
 }
   
-module.exports = { postPredict, getPredictHistories, createDiscussion, getAllDiscussions, getDiscussion, createComment, getComments, createEducation, getEducations, signUp, signIn, logOut, resetPassword};
+module.exports = { postPredict, getPredictHistories, createDiscussion, getAllDiscussions, getDiscussion, createComment, getComments, signUp, signIn, logOut, resetPassword};
 

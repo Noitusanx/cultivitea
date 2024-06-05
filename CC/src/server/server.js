@@ -1,10 +1,16 @@
 require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const swaggerUi = require('swagger-ui-express');
 const routes = require('./routes');
+const Yaml = require('yaml');
+const fs = require('fs');
+const path = require('path');
 const loadModel = require('../services/loadModel');
 const cors = require('cors');
 const { firestore, auth } = require('../config/firebase');
+
+const swaggerDocument = Yaml.parse(fs.readFileSync(path.join(__dirname, 'swagger.yaml'), 'utf8'));
 
 (async () => {
     const app = express();
@@ -30,7 +36,14 @@ const { firestore, auth } = require('../config/firebase');
     app.locals.model = model;
     app.locals.firestore = firestore;
     app.locals.auth = auth;
+
     app.use(routes);
+
+    app.use(
+        "/api-docs",
+        swaggerUi.serve,
+        swaggerUi.setup(swaggerDocument)
+    );
 
     app.listen(port, () => {
         console.log(`Server started at: http://localhost:${port}`);
