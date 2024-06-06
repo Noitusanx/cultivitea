@@ -350,6 +350,98 @@ async function getPredictHistories(req, res, next) {
 }
 
 
+
+// Profile handler
+async function getProfile(req, res) {
+  if (!req.user || !req.user.uid) {
+      return res.status(401).json({ status: 'fail', message: 'User not authenticated' });
+  }
+
+  try {
+      const userDoc = await firestore.collection('users').doc(req.user.uid).get();
+      if (!userDoc.exists) {
+          return res.status(404).json({ status: 'fail', message: 'User not found' });
+      }
+      res.status(200).json({ status: 'success', data: userDoc.data() });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ status: 'fail', message: 'Internal Server Error' });
+  }
+}
+
+async function getProfileById(req, res) {
+  const { userId } = req.params;
+
+  try {
+      const userDoc = await firestore.collection('users').doc(userId).get();
+      if (!userDoc.exists) {
+          return res.status(404).json({ status: 'fail', message: 'User not found' });
+      }
+      res.status(200).json({ status: 'success', data: userDoc.data() });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ status: 'fail', message: 'Internal Server Error' });
+  }
+}
+
+async function updateProfile(req, res) {
+  const { username, email } = req.body;
+
+  if (!req.user || !req.user.uid) {
+      return res.status(401).json({ status: 'fail', message: 'User not authenticated' });
+  }
+
+  try {
+      const userRef = firestore.collection('users').doc(req.user.uid);
+      await userRef.update({ username, email });
+      res.status(200).json({ status: 'success', message: 'Profile updated successfully' });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ status: 'fail', message: 'Internal Server Error' });
+  }
+}
+
+async function updateProfileById(req, res) {
+  const { userId } = req.params;
+  const { username, email } = req.body;
+
+  try {
+      const userRef = firestore.collection('users').doc(userId);
+      await userRef.update({ username, email });
+      res.status(200).json({ status: 'success', message: 'Profile updated successfully' });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ status: 'fail', message: 'Internal Server Error' });
+  }
+}
+
+async function deleteProfile(req, res) {
+  if (!req.user || !req.user.uid) {
+      return res.status(401).json({ status: 'fail', message: 'User not authenticated' });
+  }
+
+  try {
+      await firestore.collection('users').doc(req.user.uid).delete();
+      res.status(200).json({ status: 'success', message: 'Profile deleted successfully' });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ status: 'fail', message: 'Internal Server Error' });
+  }
+}
+
+async function deleteProfileById(req, res) {
+  const { userId } = req.params;
+
+  try {
+      await firestore.collection('users').doc(userId).delete();
+      res.status(200).json({ status: 'success', message: 'Profile deleted successfully' });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ status: 'fail', message: 'Internal Server Error' });
+  }
+}
+
+
   
-module.exports = {signUp, signIn, logOut, resetPassword, postPredict, getPredictHistories, createDiscussion, getAllDiscussions, getDiscussion, editDiscussion, deleteDiscussion, createComment, getComments, deleteComment};
+module.exports = {signUp, signIn, logOut, resetPassword, postPredict, getPredictHistories, createDiscussion, getAllDiscussions, getDiscussion, editDiscussion, deleteDiscussion, createComment, getComments, deleteComment, getProfile, updateProfile, deleteProfile, getProfileById, updateProfileById, deleteProfileById};
 

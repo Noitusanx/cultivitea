@@ -32,4 +32,12 @@ router.get('/discussions/:discussionId/comments', handlers.getComments);
 router.delete('/discussions/:discussionId/comments/:commentId', verifyToken, handlers.deleteComment);
 
 
+// Profile
+router.get('/profile', handlers.getProfile);
+router.put('/profile', verifyToken, handlers.updateProfile);
+router.delete('/profile', verifyToken, handlers.deleteProfile);
+router.get('/profile/:userId', verifyToken, handlers.getProfileById);
+router.put('/profile/:userId', verifyToken, handlers.updateProfileById);  
+router.delete('/profile/:userId', verifyToken, handlers.deleteProfileById);
+
 module.exports = router;
