@@ -19,17 +19,17 @@ router.get('/predict/histories', handlers.getPredictHistories);
 
 // Discussion
 router.post('/discussions', verifyToken, handlers.createDiscussion);
-router.get('/discussions', handlers.getAllDiscussions);
+router.get('/discussions', handlers.getAllDiscussionsHandler);
 
-router.get('/discussions/:discussionId', handlers.getDiscussion);
-router.put('/discussions/edit/:discussionId', verifyToken, handlers.editDiscussion);
-router.delete('/discussions/:discussionId', verifyToken, handlers.deleteDiscussion);
+router.get('/discussions/:discussionId', handlers.getDiscussionHandler);
+router.put('/discussions/edit/:discussionId', verifyToken, handlers.updateDiscussionHandler);
+router.delete('/discussions/:discussionId', verifyToken, handlers.deleteDiscussionHandler);
 
 
 // Comment
 router.post('/discussions/:discussionId/comments', verifyToken, handlers.createComment);
-router.get('/discussions/:discussionId/comments', handlers.getComments);
-router.delete('/discussions/:discussionId/comments/:commentId', verifyToken, handlers.deleteComment);
+router.get('/discussions/:discussionId/comments', handlers.getCommentsHandler);
+router.delete('/discussions/:discussionId/comments/:commentId', verifyToken, handlers.deleteCommentHandler);
 
 
 module.exports = router;

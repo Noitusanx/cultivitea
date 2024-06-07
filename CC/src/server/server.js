@@ -18,15 +18,15 @@ const swaggerDocument = Yaml.parse(fs.readFileSync(path.join(__dirname, 'swagger
 
     app.use(cors());
     app.use(cookieParser());
-    app.use(express.json({ limit: '1mb' }));
-    app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+    app.use(express.json({ limit: '50mb' }));
+    app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
     // Middleware to check payload size
     app.use((req, res, next) => {
-        if (req.headers['content-length'] > 1000000) {
+        if (req.headers['content-length'] > 50000000) {
             return res.status(413).json({
                 status: 'fail',
-                message: 'Payload content length greater than maximum allowed: 1000000',
+                message: 'Payload content length greater than maximum allowed: 50000000',
             });
         }
         next();

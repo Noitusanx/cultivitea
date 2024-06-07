@@ -1,7 +1,8 @@
 const predictClassification = require('../services/inferenceService');
-const { storeData, predictionsCollection, saveUserData} = require('../services/storeData');
+const { storeData, predictionsCollection, saveUserData, saveDiscussion, updateDiscussion, getAllDiscussions, getDiscussionById, deleteDiscussion, saveComment, deleteComment, getAllComments, getCommentById} = require('../services/storeData');
 const crypto = require('crypto');
 const InputError = require('../exceptions/InputError');
+const loadModel = require('../services/loadModel');
 const { 
   getAuth, 
   createUserWithEmailAndPassword, 
@@ -101,8 +102,6 @@ async function signUp(req, res) {
 
 
 // Discussion handler
-const discussions = [];
-
 async function createDiscussion(req, res, next) {
   const { title, content } = req.body;
 
@@ -128,34 +127,60 @@ async function createDiscussion(req, res, next) {
     title,
     content,
     createdAt,
-    comments: [],
   };
-  discussions.push(newDiscussion);
+
+  await saveDiscussion(newDiscussion);
 
   res.status(201).json({ status: 'success', message: 'Discussion created', data: newDiscussion });
 }
 
-
-async function getAllDiscussions(req, res, next) {
-  res.status(200).json({ status: 'success', message: 'Get all discussions', data: discussions });
-}
-
-
-async function getDiscussion(req, res, next) {
+async function getDiscussionHandler(req, res, next) {
   const { discussionId } = req.params;
 
-  const discussion = discussions.find(discussion => discussion.discussionId === discussionId);
+  try {
 
-  if (!discussion) {
-    return res.status(404).json({ status: 'fail', message: 'Discussion not found' });
+    const discussion = await getDiscussionById(discussionId);
+
+
+    if (!discussion) {
+      return res.status(404).json({ status: 'fail', message: 'Discussion not found' });
+    }
+
+    res.status(200).json({ status: 'success', message: 'Get a discussion', data: discussion });
+  } catch (error) {
+    next(error);
   }
-
-  res.status(200).json({ status: 'success', message: 'Get a discussion', data: discussion });
-
 }
 
 
-async function editDiscussion(req, res, next) {
+async function getAllDiscussionsHandler(req, res, next) {
+  try {
+    const discussion = await getAllDiscussions()
+    res.status(200).json({ status: 'success', message: 'Get all discussions', data: discussion});
+  } catch (error) {
+    next(error);
+  }
+}
+
+
+async function getDiscussionHandler(req, res, next) {
+  const { discussionId } = req.params;
+
+  try {
+    const discussion = await getDiscussionById(discussionId);
+
+
+    if (!discussion) {
+      return res.status(404).json({ status: 'fail', message: 'Discussion not found' });
+    }
+
+    res.status(200).json({ status: 'success', message: 'Get a discussion', data: discussion });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function updateDiscussionHandler(req, res, next) {
   const { discussionId } = req.params;
   const { title, content } = req.body;
 
@@ -164,7 +189,7 @@ async function editDiscussion(req, res, next) {
   }
 
   const uid = req.user.uid;
-  const discussion = discussions.find(discussion => discussion.discussionId === discussionId);
+  const discussion = await getDiscussionById(discussionId);
 
   if (!discussion) {
     console.error('Discussion not found');
@@ -176,14 +201,21 @@ async function editDiscussion(req, res, next) {
     return res.status(403).json({ status: 'fail', message: 'You are not authorized' });
   }
 
-  discussion.title = title;
-  discussion.content = content;
+  const updatedData = {
+    title,
+    content,
+  };
 
-  res.status(200).json({ status: 'success', message: 'Discussion updated successfully' });
+  try {
+    await updateDiscussion(discussionId, updatedData);
+    res.status(200).json({ status: 'success', message: 'Discussion updated successfully' });
+  } catch (error) {
+    next(error);
+  }
 }
 
 
-async function deleteDiscussion(req, res, next) {
+async function deleteDiscussionHandler(req, res, next) {
   const { discussionId } = req.params;
 
   if (!req.user || !req.user.uid) {
@@ -192,23 +224,26 @@ async function deleteDiscussion(req, res, next) {
   }
 
   const uid = req.user.uid;
-  const discussionIndex = discussions.findIndex(discussion => discussion.discussionId === discussionId);
-  const discussion = discussions[discussionIndex];
+  const discussion = await getDiscussionById(discussionId);
 
-  if (discussionIndex === -1) {
+ 
+
+  if (!discussion) {
     console.error('Discussion not found');
     return res.status(404).json({ status: 'fail', message: 'Discussion not found' });
   }
-
 
   if (discussion.creatorUid !== uid) {
     console.error('User not authorized');
     return res.status(403).json({ status: 'fail', message: 'You are not authorized' });
   }
 
-  discussions.splice(discussionIndex, 1);
-
-  res.status(200).json({ status: 'success', message: 'Discussion deleted successfully' });
+  try {
+    await deleteDiscussion(discussionId);
+    res.status(200).json({ status: 'success', message: 'Discussion deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
 }
 
 
@@ -216,11 +251,10 @@ async function deleteDiscussion(req, res, next) {
 // Comment handler
 async function createComment(req, res, next) {
   const { discussionId } = req.params;
-  const { content} = req.body;
+  const { content } = req.body;
   const createdAt = new Date().toISOString();
 
-  const discussion = discussions.find(discussion => discussion.discussionId === discussionId);
-
+  const discussion = await getDiscussionById(discussionId);
   const commentId = crypto.randomUUID();
 
   if (!discussion) {
@@ -242,24 +276,34 @@ async function createComment(req, res, next) {
     createdAt,
   };
 
-  discussion.comments.push(newComment);
-
-  res.status(201).json({ status: 'success', message: 'Comment created', data: newComment });
+  try {
+    await saveComment(discussionId, newComment);
+    res.status(201).json({ status: 'success', message: 'Comment created', data: newComment });
+  } catch (error) {
+    next(error);
+  }
 }
 
-async function getComments(req, res, next) {
+
+async function getCommentsHandler(req, res, next) {
   const { discussionId } = req.params;
 
-  const discussion = discussions.find(discussion => discussion.discussionId === discussionId);
+  const discussion = await getDiscussionById(discussionId);
 
   if (!discussion) {
     return res.status(404).json({ status: 'fail', message: 'Discussion not found' });
   }
 
-  res.status(200).json({ status: 'success', message: 'Get all comments', data: discussion.comments });
+  try {
+    const comment = await getAllComments(discussionId)
+    res.status(200).json({ status: 'success', message: 'Get all comments', data: comment });
+  } catch (error) {
+    next(error);
+  }
 }
 
-async function deleteComment(req, res, next) {
+
+async function deleteCommentHandler(req, res, next) {
   const { discussionId, commentId } = req.params;
 
   if (!req.user || !req.user.uid) {
@@ -269,45 +313,48 @@ async function deleteComment(req, res, next) {
 
   const uid = req.user.uid;
 
-  const discussion = discussions.find(discussion => discussion.discussionId === discussionId);
+  const discussion = await getDiscussionById(discussionId);
 
   if (!discussion) {
     console.error('Discussion not found');
     return res.status(404).json({ status: 'fail', message: 'Discussion not found' });
   }
 
-  const commentIndex = discussion.comments.findIndex(comment => comment.commentId === commentId);
-  const comment = discussion.comments[commentIndex];
+  const comment = await getCommentById(discussionId, commentId);
 
-  if (commentIndex === -1) {
+  if (!comment) {
     console.error('Comment not found');
     return res.status(404).json({ status: 'fail', message: 'Comment not found' });
   }
-
 
   if (comment.creatorUid !== uid) {
     console.error('User not authorized');
     return res.status(403).json({ status: 'fail', message: 'You are not authorized' });
   }
 
-  discussion.comments.splice(commentIndex, 1);
-
-  res.status(200).json({ status: 'success', message: 'Comment deleted successfully' });
+  try {
+    await deleteComment(discussionId, commentId);
+    res.status(200).json({ status: 'success', message: 'Comment deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
 }
 
 
 
-// Predict handler
+
+// new predict handler
+
 async function postPredict(req, res, next) {
   try {
     const { file: image } = req;
-    const { model } = req.app.locals;
-
     if (!image) {
       throw new InputError('No image provided');
     }
 
-    const { resultScore, result, suggestion } = await predictClassification(model, image.buffer);
+    const model = await loadModel();
+    const { result, suggestion } = await predictClassification(model, image.buffer);
+
     const id = crypto.randomUUID();
     const createdAt = new Date().toISOString();
 
@@ -318,15 +365,16 @@ async function postPredict(req, res, next) {
       createdAt,
     };
 
+
     await storeData(id, data);
+
     res.status(201).json({
       status: 'success',
-      message: resultScore > 99 
-        ? 'Model is predicted successfully' 
-        : 'Model is predicted successfully but under threshold. Please use the correct picture',
+      message: 'Model is predicted successfully',
       data,
     });
   } catch (error) {
+    console.error('Error occurred:', error);
     if (error instanceof InputError) {
       res.status(400).json({ status: 'fail', message: error.message });
     } else {
@@ -349,7 +397,6 @@ async function getPredictHistories(req, res, next) {
   }
 }
 
-
   
-module.exports = {signUp, signIn, logOut, resetPassword, postPredict, getPredictHistories, createDiscussion, getAllDiscussions, getDiscussion, editDiscussion, deleteDiscussion, createComment, getComments, deleteComment};
+module.exports = {signUp, signIn, logOut, resetPassword, postPredict, getPredictHistories, createDiscussion, getAllDiscussionsHandler, getDiscussionHandler, updateDiscussionHandler, deleteDiscussionHandler, createComment, getCommentsHandler, deleteCommentHandler};
 
