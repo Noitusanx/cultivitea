@@ -77,7 +77,6 @@ const deleteDiscussion = async (discussionId) => {
     const discussionRef = firestore.collection('discussions').doc(discussionId);
     const commentsSnapshot = await discussionRef.collection('comments').get();
 
-    // Delete all comments
     commentsSnapshot.forEach(async (commentDoc) => {
       await commentDoc.ref.delete();
     });
@@ -89,6 +88,8 @@ const deleteDiscussion = async (discussionId) => {
   }
 };
 
+
+// store data comment in firestore
 const saveComment = async (discussionId, commentData) => {
   try {
     const commentRef = firestore.collection('discussions').doc(discussionId).collection('comments').doc(commentData.commentId);
