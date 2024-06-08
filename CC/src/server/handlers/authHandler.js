@@ -3,8 +3,9 @@ const {
     signInWithEmailAndPassword, 
     signOut, 
     sendEmailVerification,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
    } = require('../../config/firebase');
+   const { saveUserData } = require('../../services/storeData');
    const {getAuth} = require('../../config/firebase');
    const auth = getAuth();
 
