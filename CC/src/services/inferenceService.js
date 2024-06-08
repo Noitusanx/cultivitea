@@ -15,16 +15,11 @@ async function predictClassification(model, imageBuffer) {
     const prediction = model.predict(tensor);
     const score = await prediction.data();
     
-    console.log("Scores: ", score);
-
     const labels = ['Tea Algal Leaf', 'Tea Anthracnose', 'Tea Bird Eye Spot', 'Tea Brown Blight', 'Tea Healthy', 'Tea Red Leaf Spot']
 
     const predictedIndex = score.indexOf(Math.max(...score));
     const result = labels[predictedIndex];
     const accuracy = Math.max(...score) * 100;
-
-    console.log("Predicted Result: ", result);
-    console.log("Accuracy: ", accuracy);
 
     const suggestion = result !== 'Tea Healthy' ? 'Segera periksa tanaman Anda!' : 'Tanaman Anda sehat!';
 

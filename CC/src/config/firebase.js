@@ -14,6 +14,7 @@ const {
   TOKEN_URI,
   AUTH_PROVIDER_X509_CERT_URL,
   CLIENT_X509_CERT_URL,
+  FIREBASE_STORAGE_BUCKET,
 } = process.env;
 
 // firebase admin sdk service account
@@ -33,6 +34,7 @@ const serviceAccount = {
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   projectId: PROJECT_ID,
+  storageBucket: FIREBASE_STORAGE_BUCKET
 });
 
 // firebase client sdk initialization

@@ -1,22 +1,46 @@
 // store data in firestore
-const Firestore = require('@google-cloud/firestore');
-const db = new Firestore();
-const predictionsCollection = db.collection('predictions');
-const usersCollection = db.collection('users');
-const discussionsCollection = db.collection('discussions');
-const { firestore } = require('../config/firebase'); 
+const { firestore, admin } = require('../config/firebase'); 
+const crypto = require('crypto');
 
 
 // store data prediction in firestore
-async function storeData(id, data) {
+async function storeData(uid, data) {
   try {
-    const predictCollection = db.collection('predictions');
-    await predictCollection.doc(id).set(data);
-    return { success: true };
+    const teaPlantDocRef = firestore.collection('users').doc(uid).collection('teaPlants').doc(data.teaPlantId);
+    await teaPlantDocRef.set(data);
+    return { success: true, message: 'Tea Plant created successfully' }; 
   } catch (error) {
-    return { success: false, error: 'Failed to store data' };
+    return { success: false, error: 'Failed to store data: ' + error.message };
   }
 }
+
+async function getPredictHistories(uid) { 
+  try {
+    const predictionsCollection = firestore.collection('users').doc(uid).collection('teaPlants');
+    const querySnapshot = await predictionsCollection.get();
+    const histories = querySnapshot.docs.map(doc => doc.data());
+    return histories;
+  } catch (error) {
+    throw new Error('Failed to get data: ' + error.message);
+  }
+}
+
+async function uploadPredictionImageToStorage(image) {
+  const storage = admin.storage();
+  const bucket = storage.bucket();
+
+  const fileName = `predictionImages/${crypto.randomUUID()}_${image.originalname}`;
+
+  const file = bucket.file(fileName);
+  await file.save(image.buffer);
+
+  await file.makePublic();
+
+  const [url] = await file.getSignedUrl({ action: 'read', expires: '1-01-2500'});
+
+  return url;
+}
+
 
 // store data authentication in firestore
 const saveUserData = async (userData) => {
@@ -28,6 +52,7 @@ const saveUserData = async (userData) => {
     throw new Error('Error saving user data: ' + error.message);
   }
 };
+
 
 // store data discussion in firestore
 const saveDiscussion = async (discussionData) => {
@@ -89,6 +114,7 @@ const deleteDiscussion = async (discussionId) => {
 };
 
 
+
 // store data comment in firestore
 const saveComment = async (discussionId, commentData) => {
   try {
@@ -130,6 +156,69 @@ const deleteComment = async (discussionId, commentId) => {
   }
 };
 
+// store data profile in firestore
+const getProfileById = async (userId) => {
+  try {
+    const userDoc = await firestore.collection('users').doc(userId).get();
+    if (!userDoc.exists) {
+      return null;
+    }
+    return userDoc.data();
+  } catch (error) {
+    throw new Error('Error getting user by ID: ' + error.message);
+  }
+};
+
+const updateProfileById = async (userId, updatedData) => {
+  try {
+    const userRef = firestore.collection('users').doc(userId);
+    await userRef.update(updatedData);
+    return { status: 'success', message: 'Profile updated successfully' };
+  } catch (error) {
+    throw new Error('Error updating profile: ' + error.message);
+  }
+}
+
+const deleteProfileById = async (uid) => {
+  try {
+    await firestore.collection('users').doc(uid).delete();
+
+    await admin.auth().deleteUser(uid);
+
+    return { status: 'success', message: 'User profile and authentication deleted successfully' };
+  } catch (error) {
+    throw new Error('Error deleting user profile: ' + error.message);
+  }
+}
 
 
-module.exports = {predictionsCollection, storeData, saveUserData, usersCollection, saveDiscussion, discussionsCollection, getAllDiscussions, getDiscussionById, updateDiscussion, deleteDiscussion, saveComment, getAllComments, getCommentById, deleteComment};
+const uploadUserImageToStorage = async (file, uid) => {
+  if (!file) {
+    return '';
+  }
+
+  const storage = admin.storage();
+  const bucket = storage.bucket();
+
+  const fileName = `profileImages/${uid}-${Date.now()}-${file.originalname}`;
+  const fileUpload = bucket.file(fileName);
+
+  await fileUpload.save(file.buffer);
+
+  await fileUpload.makePublic();
+
+  const [signedUrl] = await fileUpload.getSignedUrl({
+    action: 'read',
+    expires: '01-01-2500',
+  });
+
+  return signedUrl;
+};
+
+
+const removeUndefinedFields = (obj) => {
+  return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
+};
+
+
+module.exports = {storeData, saveUserData, saveDiscussion, getAllDiscussions, getDiscussionById, updateDiscussion, deleteDiscussion, saveComment, getAllComments, getCommentById, deleteComment, getProfileById, updateProfileById, deleteProfileById, getPredictHistories, uploadPredictionImageToStorage, uploadUserImageToStorage, removeUndefinedFields};
