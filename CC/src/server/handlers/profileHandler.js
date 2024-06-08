@@ -19,11 +19,11 @@ const getProfileByIdHandler = async (req, res, next) => {
   
   
   const updateProfileByIdHandler = async (req, res, next) => {
-    const { uid } = req.params; // UID dari parameter URL
+    const { uid } = req.params;
     const { username, phoneNumber, dateOfBirth } = req.body;
   
     try {
-      const authenticatedUid = req.user.uid; // UID dari token autentikasi
+      const authenticatedUid = req.user.uid;
   
       if (uid !== authenticatedUid) {
         return res.status(403).json({ status: 'fail', message: 'You are not authorized to update this profile' });
