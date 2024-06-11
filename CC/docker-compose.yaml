@@ -6,8 +6,9 @@ services:
       context: .
       args:
         MODEL_URL: ${MODEL_URL}
+        PORT: ${PORT}
     ports:
-      - "${PORT}:8000"
+      - "${PORT}:${PORT}"
     environment:
       - MODEL_URL=${MODEL_URL}
       - PORT=${PORT}

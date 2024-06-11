@@ -7,5 +7,5 @@ COPY . .
 ARG MODEL_URL
 ENV MODEL_URL=${MODEL_URL}
 
-EXPOSE 8000
+EXPOSE 8080
 CMD ["npm", "run", "start"]
