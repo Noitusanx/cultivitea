@@ -10,7 +10,7 @@ async function postPredict(req, res, next) {
       const uid = req.user.uid;
       const { file: image } = req;
       if (!image) {
-        throw new InputError('No image provided');
+        throw new InputError('Invalid input: No image provided');
       }
   
       const imageUrl = await uploadPredictionImageToStorage(image)
@@ -21,7 +21,7 @@ async function postPredict(req, res, next) {
       const teaPlantId = crypto.randomUUID();
       const createdAt = new Date().toISOString();
   
-      const data = {
+      const predictionResult = {
         teaPlantId,
         imageUrl,
         result,
@@ -29,21 +29,23 @@ async function postPredict(req, res, next) {
         createdAt,
       };
   
-      const storeResult = await storeData(uid, data);
+      const storeResult = await storeData(uid, predictionResult);
   
       if (!storeResult.success) {
         throw new Error(storeResult.error);
       }
   
       res.status(201).json({
-        status: 'success',
+        error: false,
         message: 'Model is predicted successfully',
-        data,
+        data: predictionResult,
       });
     } catch (error) {
-      console.error('Error occurred:', error);
       if (error instanceof InputError) {
-        res.status(400).json({ status: 'fail', message: error.message });
+        res.status(400).json({ 
+          error: true, 
+          message: error.message 
+        });
       } else {
         next(error);
       }
@@ -54,11 +56,14 @@ async function postPredict(req, res, next) {
     try {
       const uid = req.user.uid;
       const histories = await getPredictHistories(uid);
-      const data = histories.map(item => ({
+      const predictionHistories = histories.map(item => ({
         id: item.teaPlantId,
         history: item,
       }));
-      res.status(200).json({ status: 'success', data });
+      res.status(200).json({ 
+        error: false, 
+        message: "Predictions history retrieved successfully", 
+        data: predictionHistories });
     } catch (error) {
       next(error);
     }

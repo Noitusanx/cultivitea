@@ -1,11 +1,10 @@
 openapi: 3.0.0
 info:
-  title: CultiviTea API
-  description: API documentation for CultiviTea application
   version: 1.0.0
-
+  title: API Documentation
+  description: API documentation for the application
 servers:
-  - url: http://localhost:8085
+  - url: http://localhost:8080
     description: Local server
 
 paths:
@@ -21,37 +20,17 @@ paths:
               properties:
                 username:
                   type: string
-                email:
-                  type: string
                 password:
                   type: string
-              required:
-                - username
-                - email
-                - password
+                email:
+                  type: string
       responses:
-        '201':
-          description: Verification email sent! User created successfully!
-        '422':
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  username:
-                    type: string
-                    example: Username is required
-                  email:
-                    type: string
-                    example: Email is required
-                  password:
-                    type: string
-                    example: Password is required
+        200:
+          description: User signed up successfully
 
   /signin:
     post:
-      summary: Sign in a user
+      summary: Sign in an existing user
       requestBody:
         required: true
         content:
@@ -63,54 +42,22 @@ paths:
                   type: string
                 password:
                   type: string
-              required:
-                - email
-                - password
       responses:
-        '200':
-          description: User logged in successfully
-        '422':
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  email:
-                    type: string
-                    example: Email is required
-                  password:
-                    type: string
-                    example: Password is required
+        200:
+          description: User signed in successfully
 
   /logout:
     post:
-      summary: Log out a user
+      summary: Log out the current user
       responses:
-        '200':
+        200:
           description: User logged out successfully
-
-  /reset-password:
-    post:
-      summary: Reset user password
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-              required:
-                - email
-      responses:
-        '200':
-          description: Password reset email sent successfully!
 
   /predict:
     post:
-      summary: Predict using model
+      summary: Predict using an uploaded image
+      security:
+        - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -122,44 +69,23 @@ paths:
                   type: string
                   format: binary
       responses:
-        '201':
-          description: Model is predicted successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Model is predicted successfully
-                  data:
-                    $ref: '#/components/schemas/predictions'
+        200:
+          description: Prediction result
 
   /predict/histories:
     get:
       summary: Get prediction histories
+      security:
+        - cookieAuth: []
       responses:
-        '200':
-          description: Get all prediction histories
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/predictions'
+        200:
+          description: List of prediction histories
 
   /discussions:
     post:
       summary: Create a new discussion
+      security:
+        - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -171,84 +97,50 @@ paths:
                   type: string
                 content:
                   type: string
-              required:
-                - title
-                - content
       responses:
-        '201':
-          description: Discussion created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Discussion created
-                  data:
-                    $ref: '#/components/schemas/discussions'
+        200:
+          description: Discussion created successfully
 
     get:
       summary: Get all discussions
       responses:
-        '200':
-          description: Get all discussions
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/discussions'
+        200:
+          description: List of all discussions
 
   /discussions/{discussionId}:
     get:
-      summary: Get a discussion by ID
+      summary: Get a specific discussion
       parameters:
-        - in: path
-          name: discussionId
+        - name: discussionId
+          in: path
           required: true
           schema:
             type: string
       responses:
-        '200':
-          description: Get a discussion
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    $ref: '#/components/schemas/discussions'
+        200:
+          description: Discussion details
     delete:
-      summary: Delete a discussion by ID
+      summary: Delete a specific discussion
+      security:
+        - cookieAuth: []
       parameters:
-        - in: path
-          name: discussionId
+        - name: discussionId
+          in: path
           required: true
           schema:
             type: string
       responses:
-        '200':
+        200:
           description: Discussion deleted successfully
-
+    
   /discussions/edit/{discussionId}:
     put:
-      summary: Update a discussion by ID
+      summary: Update a specific discussion
+      security:
+        - cookieAuth: []
       parameters:
-        - in: path
-          name: discussionId
+        - name: discussionId
+          in: path
           required: true
           schema:
             type: string
@@ -263,19 +155,18 @@ paths:
                   type: string
                 content:
                   type: string
-              required:
-                - title
-                - content
       responses:
-        '200':
+        200:
           description: Discussion updated successfully
 
   /discussions/{discussionId}/comments:
     post:
-      summary: Create a new comment for a discussion
+      summary: Create a new comment in a discussion
+      security:
+        - cookieAuth: []
       parameters:
-        - in: path
-          name: discussionId
+        - name: discussionId
+          in: path
           required: true
           schema:
             type: string
@@ -288,132 +179,107 @@ paths:
               properties:
                 content:
                   type: string
-              required:
-                - content
       responses:
-        '201':
-          description: Comment created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: Comment created
-                  data:
-                    $ref: '#/components/schemas/comments'
+        200:
+          description: Comment created successfully
+
     get:
-      summary: Get all comments for a discussion
+      summary: Get comments of a specific discussion
       parameters:
-        - in: path
-          name: discussionId
+        - name: discussionId
+          in: path
           required: true
           schema:
             type: string
       responses:
-        '200':
-          description: Get all comments
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/comments'
+        200:
+          description: List of comments
 
   /discussions/{discussionId}/comments/{commentId}:
     delete:
-      summary: Delete a comment by ID for a discussion
+      summary: Delete a specific comment
+      security:
+        - cookieAuth: []
       parameters:
-        - in: path
-          name: discussionId
+        - name: discussionId
+          in: path
           required: true
           schema:
             type: string
-        - in: path
-          name: commentId
+        - name: commentId
+          in: path
           required: true
           schema:
             type: string
       responses:
-        '200':
+        200:
           description: Comment deleted successfully
 
   /profile/{uid}:
     get:
       summary: Get a user profile by ID
+      security:
+        - cookieAuth: []
       parameters:
-        - in: path
-          name: uid
+        - name: uid
+          in: path
           required: true
           schema:
             type: string
       responses:
-        '200':
-          description: User profile fetched
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    $ref: '#/components/schemas/profiles'
-
+        200:
+          description: User profile
     delete:
       summary: Delete a user profile by ID
+      security:
+        - cookieAuth: []
       parameters:
-        - in: path
-          name: uid
+        - name: uid
+          in: path
           required: true
           schema:
             type: string
       responses:
-        '200':
-          description: User profile deleted
-
-
+        200:
+          description: Profile deleted successfully
+    
   /profile/edit/{uid}:
-     put:
+    put:
       summary: Update a user profile by ID
+      security:
+        - cookieAuth: []
       parameters:
-        - in: path
-          name: uid
+        - name: uid
+          in: path
           required: true
           schema:
             type: string
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
               properties:
-                username:
+                image:
+                  type: string
+                  format: binary
+                name:
                   type: string
                 phoneNumber:
                   type: string
                 dateOfBirth:
                   type: string
-                imageUrl:
-                  type: string
       responses:
-        '200':
-          description: User profile updated
-
-
+        200:
+          description: Profile updated successfully
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
+
   schemas:
     profiles:
       type: object
@@ -494,4 +360,3 @@ components:
         - result
         - suggestion
         - createdAt
-    

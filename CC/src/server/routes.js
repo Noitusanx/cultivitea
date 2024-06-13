@@ -14,7 +14,7 @@ const upload = multer();
 router.post('/signup', auth.signUp);
 router.post('/signin', auth.signIn);
 router.post('/logout', auth.logOut);
-router.post('/reset-password', auth.resetPassword);
+
 
 // Predict
 router.post('/predict', upload.single('image'), verifyToken, predict.postPredict);

@@ -10,15 +10,23 @@ async function createDiscussion(req, res, next) {
   
     if (!req.user || !req.user.uid) {
       console.error('User not authenticated');
-      return res.status(400).json({ status: 'fail', message: 'User not authenticated' });
+      return res.status(400).json({ 
+        error: true, 
+        message: 'User not authenticated' 
+      });
     }
   
     const creator = req.user.username;
     const creatorUid = req.user.uid;
-  
-    if (!title || !content || !creatorUid) {
-      return res.status(400).json({ status: 'fail', message: 'Field title, content, createdAt, and creator are required' });
-    }
+
+    if (!title || !content) {
+      return res.status(400).json({ 
+        error: true, 
+        message: 'Title and content are required to create a discussion' 
+      });
+  }
+
+   
   
     const newDiscussion = {
       discussionId,
@@ -31,32 +39,22 @@ async function createDiscussion(req, res, next) {
   
     await saveDiscussion(newDiscussion);
   
-    res.status(201).json({ status: 'success', message: 'Discussion created', data: newDiscussion });
-  }
-  
-  async function getDiscussionHandler(req, res, next) {
-    const { discussionId } = req.params;
-  
-    try {
-  
-      const discussion = await getDiscussionById(discussionId);
-  
-  
-      if (!discussion) {
-        return res.status(404).json({ status: 'fail', message: 'Discussion not found' });
-      }
-  
-      res.status(200).json({ status: 'success', message: 'Get a discussion', data: discussion });
-    } catch (error) {
-      next(error);
-    }
+    res.status(201).json({ 
+      error: false, 
+      message: 'Discussion created successfully', 
+      data: newDiscussion 
+    });
   }
   
   
   async function getAllDiscussionsHandler(req, res, next) {
     try {
       const discussion = await getAllDiscussions()
-      res.status(200).json({ status: 'success', message: 'Get all discussions', data: discussion});
+      res.status(200).json({ 
+        error: false, 
+        message: 'All discussions retrieved successfully', 
+        data: discussion
+      });
     } catch (error) {
       next(error);
     }
@@ -71,10 +69,17 @@ async function createDiscussion(req, res, next) {
   
   
       if (!discussion) {
-        return res.status(404).json({ status: 'fail', message: 'Discussion not found' });
+        return res.status(404).json({ 
+          error: true, 
+          message: 'Discussion not found' 
+        });
       }
   
-      res.status(200).json({ status: 'success', message: 'Get a discussion', data: discussion });
+      res.status(200).json({ 
+        error: false, 
+        message: 'Discussion retrieved successfully', 
+        data: discussion 
+      });
     } catch (error) {
       next(error);
     }
@@ -85,7 +90,10 @@ async function createDiscussion(req, res, next) {
     const { title, content } = req.body;
   
     if (!req.user || !req.user.uid) {
-      return res.status(400).json({ status: 'fail', message: 'User not authenticated' });
+      return res.status(400).json({ 
+        error: true, 
+        message: 'User not authenticated' 
+      });
     }
   
     const uid = req.user.uid;
@@ -93,12 +101,18 @@ async function createDiscussion(req, res, next) {
   
     if (!discussion) {
       console.error('Discussion not found');
-      return res.status(404).json({ status: 'fail', message: 'Discussion not found' });
+      return res.status(404).json({ 
+        error: true, 
+        message: 'Discussion not found' 
+      });
     }
   
     if (discussion.creatorUid !== uid) {
       console.error('User not authorized');
-      return res.status(403).json({ status: 'fail', message: 'You are not authorized' });
+      return res.status(403).json({ 
+        error: true, 
+        message: 'You are not authorized to update this discussion'
+      });
     }
   
     const updatedData = {
@@ -108,7 +122,10 @@ async function createDiscussion(req, res, next) {
   
     try {
       await updateDiscussion(discussionId, updatedData);
-      res.status(200).json({ status: 'success', message: 'Discussion updated successfully' });
+      res.status(200).json({ 
+        error: false, 
+        message: 'Discussion updated successfully' 
+      });
     } catch (error) {
       next(error);
     }
@@ -120,27 +137,37 @@ async function createDiscussion(req, res, next) {
   
     if (!req.user || !req.user.uid) {
       console.error('User not authenticated');
-      return res.status(400).json({ status: 'fail', message: 'User not authenticated' });
+      return res.status(400).json({ 
+        error: true, 
+        message: 'User not authenticated' 
+      });
     }
   
     const uid = req.user.uid;
-    const discussion = await getDiscussionById(discussionId);
-  
-   
+    const discussion = await getDiscussionById(discussionId);   
   
     if (!discussion) {
       console.error('Discussion not found');
-      return res.status(404).json({ status: 'fail', message: 'Discussion not found' });
+      return res.status(404).json({ 
+        error: true, 
+        message: 'Discussion not found' 
+      });
     }
   
     if (discussion.creatorUid !== uid) {
       console.error('User not authorized');
-      return res.status(403).json({ status: 'fail', message: 'You are not authorized' });
+      return res.status(403).json({ 
+        error: true, 
+        message: 'You are not authorized to delete this discussion'
+      });
     }
   
     try {
       await deleteDiscussion(discussionId);
-      res.status(200).json({ status: 'success', message: 'Discussion deleted successfully' });
+      res.status(200).json({ 
+        error: false, 
+        message: 'Discussion deleted successfully' 
+      });
     } catch (error) {
       next(error);
     }
