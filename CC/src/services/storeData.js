@@ -216,6 +216,22 @@ const uploadUserImageToStorage = async (file, uid) => {
 };
 
 
+// If firebase Auth doens't work
+// const getUserByEmail = async (email) => {
+//   try {
+//     const userQuerySnapshot = await firestore.collection('users').where('email', '==', email).get();
+//     if (userQuerySnapshot.empty) {
+//       return null;
+//     }
+//     const userDoc = userQuerySnapshot.docs[0];
+//     return { ...userDoc.data(), uid: userDoc.id };
+//   } catch (error) {
+//     console.error("Error getting user by email:", error);
+//     throw new Error("Error getting user by email");
+//   }
+// };
+
+
 const removeUndefinedFields = (obj) => {
   return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
 };

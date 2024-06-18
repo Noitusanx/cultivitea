@@ -37,5 +37,8 @@ router.get('/profile/:uid', verifyToken, profile.getProfileByIdHandler);
 router.put('/profile/edit/:uid', upload.single('image'), verifyToken, profile.updateProfileByIdHandler);
 router.delete('/profile/:uid', verifyToken, profile.deleteProfileByIdHandler);
 
+// Example routes if firebase authentication doesn't work
+// router.delete('/profile/:uid', verifyToken.authenticateJWT, profile.deleteProfileByIdHandler);
+
 
 module.exports = router;

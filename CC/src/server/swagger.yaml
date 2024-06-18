@@ -4,8 +4,8 @@ info:
   title: API Documentation
   description: API documentation for the application
 servers:
-  - url: http://localhost:8080
-    description: Local server
+  - url: https://cultivitea-hokwvb2y5q-et.a.run.app
+    description: Server
 
 paths:
   /signup:
