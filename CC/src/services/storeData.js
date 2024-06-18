@@ -215,6 +215,11 @@ const uploadUserImageToStorage = async (file, uid) => {
   return signedUrl;
 };
 
+const removeUndefinedFields = (obj) => {
+  return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
+};
+
+
 
 // If firebase Auth doens't work
 // const getUserByEmail = async (email) => {
@@ -230,11 +235,6 @@ const uploadUserImageToStorage = async (file, uid) => {
 //     throw new Error("Error getting user by email");
 //   }
 // };
-
-
-const removeUndefinedFields = (obj) => {
-  return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
-};
 
 
 module.exports = {storeData, saveUserData, saveDiscussion, getAllDiscussions, getDiscussionById, updateDiscussion, deleteDiscussion, saveComment, getAllComments, getCommentById, deleteComment, getProfileById, updateProfileById, deleteProfileById, getPredictHistories, uploadPredictionImageToStorage, uploadUserImageToStorage, removeUndefinedFields};
