@@ -1,1 +1,0 @@
-# cultivitea (CC)
